@@ -1,2 +1,38 @@
 Corona SDK - Dynamic Image Resolution
 (an alternative method)
+
+As you possibly know, Corona SDK provides a method of “dynamic image resolution” that allows you to automatically load a high-resolution image when your application works on a higher resolution device.
+This feature is explained very well, for example, here:
+http://blog.anscamobile.com/2011/01/dynamic-image-resolution-made-easy/ 
+The only “but” of this method is that you have to use display.newImageRect() function instead of display.newImage() – and this means that you must provide image width and height as parameters.
+
+This works fine when your images are a part of GUI – i.e. a part of your application.
+But what if your images are a part of your data? 
+
+Now I’m working on a guidebook with a lot of text and pictures. All the image files’ names are loaded from the app’s documents (text files) and I don’t want to modify my code each time I add a new picture or change its size.
+It’s not only difficult to do and maintain; this is a (very) bad style: as a general principle, your application must never depend on your data or contain any part of it hard-coded.
+
+So I developed an alternative way to manage dynamic resolution images that doesn’t use display.newImageRect() but still doesn’t require loading images twice (this is, in fact, the reason you have to provide image dimensions to newImageRect: otherwise Corona would have to load both low-res and high-res images in order to calculate the scale). 
+
+It’s very easy to use: you just have to use DynResManager:loadImage(imageFileName [, forceLoadRes]) function instead of display.newImage. The second parameter forceLoadRes (values “high” / “low”) is optional and allows you to specify explicitly which of the images (low-res or high-res) to load.
+
+How does it work?
+
+1. There are 3 constants defined in DynResManager:
+- constHiResPicScale is the ratio between the size of high-res images and that of low-res images. Of course, it’s your responsibility to provide images of correct size;
+
+- constHiResSuffix is the suffix added to the file names of high-res pictures (just like standard dynamic resolution image naming);
+
+- constHiResThreshold is the threshold value of image “magnification” starting from which high resolution images will be loaded.
+
+If you need more than two resolution levels, it's possible to turn constHiResPicScale, constHiResSuffix and constHiResThreshold into tables (of course, this requires also changes in functions).
+
+2. The program calculates the “magnification level” of current device -
+deviceScaleX = 1.0 / display.contentScaleX
+deviceScaleY = 1.0 / display.contentScaleY
+- and, if it is equal to or greater than constHiResThreshold, it adds constHiResSuffix to the specified file name and tries to load a high resolution image (if it fails, the “base” low resolution image is loaded). 
+
+3. If a high resolution image was loaded, the program scales it down using constHiResPicScale; you’ll have to take the new image’s xScale and yScale into account if you want to scale it again.
+
+That’s all! Here’s an example you can try -
+just open the example in simulator viewing it as devices of different screen sizes.
